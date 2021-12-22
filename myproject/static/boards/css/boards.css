@@ -1,0 +1,20 @@
+tr {
+    border-bottom: 2px solid #e6e8eb;
+}
+.breadcrumb-item.active {
+}
+.breadcrumb {
+    padding: 10px;
+    background-color: #e6e8eb;
+    border-radius: 5px;
+}
+.thead-inverse {
+    color: white;
+    background-color: black;
+}
+.navbar-brand {
+  font-family: 'Peralta', cursive;
+}
+.form-group {
+    margin-top: 10px;
+}
