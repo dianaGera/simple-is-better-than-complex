@@ -32,9 +32,7 @@ class BoardTopicsTests(TestCase):
         board_topics_url = reverse('board_topics', kwargs={'board_id': 1})
         homepage_url = reverse('home')
         new_topic_url = reverse('new_topic', kwargs={'board_id': 1})
-
         response = self.client.get(board_topics_url)
-
         self.assertContains(response, 'href="{0}"'.format(homepage_url))
         self.assertContains(response, 'href="{0}"'.format(new_topic_url))
 

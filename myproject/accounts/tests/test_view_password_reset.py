@@ -80,14 +80,8 @@ class PasswordResetDoneTests(TestCase):
 class PasswordResetConfirmTests(TestCase):
     def setUp(self):
         user = User.objects.create_user(username='john', email='john@doe.com', password='123abcdef')
-        '''
-        create a valid password reset token
-        based on how django creates the token internally:
-        https://github.com/django/django/blob/1.11.5/django/contrib/auth/forms.py#L280
-        '''
         self.uid = urlsafe_base64_encode(force_bytes(user.pk))
         self.token = default_token_generator.make_token(user)
-
         url = reverse('password_reset_confirm', kwargs={'uidb64': self.uid, 'token': self.token})
         self.response = self.client.get(url, follow=True)
 
@@ -95,7 +89,6 @@ class PasswordResetConfirmTests(TestCase):
         self.assertEquals(self.response.status_code, 200)
 
     def test_view_function(self):
-        # view = resolve('/reset/{uidb64}/{token}/'.format(uidb64=self.uid, token=self.token))
         view = resolve(f'/reset/{self.uid}/{self.token}/')
         self.assertEquals(view.func.view_class, auth_views.PasswordResetConfirmView)
 
@@ -107,9 +100,6 @@ class PasswordResetConfirmTests(TestCase):
         self.assertIsInstance(form, SetPasswordForm)
 
     def test_form_inputs(self):
-        '''
-        The view must contain two inputs: csrf and two password fields
-        '''
         self.assertContains(self.response, '<input', 3)
         self.assertContains(self.response, 'type="password"', 2)
 
@@ -119,10 +109,6 @@ class InvalidPasswordResetConfirmTests(TestCase):
         user = User.objects.create_user(username='john', email='john@doe.com', password='123abcdef')
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
-
-        '''
-        invalidate the token by changing the password
-        '''
         user.set_password('abcdef123')
         user.save()
 
