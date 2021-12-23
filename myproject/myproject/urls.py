@@ -22,12 +22,15 @@ from boards import views
 from accounts import views as accounts_view
 
 urlpatterns = [
-    path('', views.home, name='home'),
+    # path('', views.home, name='home'),
+    path('', views.BoardListView.as_view(), name='home'),
     path('signup/', accounts_view.signup, name='signup'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
-    path('boards/<int:board_id>/', views.board_topics, name='board_topics'),
-    path('boards/<int:board_id>/topics/<int:topic_id>/', views.topic_posts, name='topic_posts'),
+    # path('boards/<int:board_id>/', views.board_topics, name='board_topics'),
+    path('boards/<int:board_id>/', views.TopicListView.as_view(), name='board_topics'),
+    # path('boards/<int:board_id>/topics/<int:topic_id>/', views.topic_posts, name='topic_posts'),
+    path('boards/<int:board_id>/topics/<int:topic_id>/', views.PostListView.as_view(), name='topic_posts'),
     path('boards/<int:board_id>/topics/<int:topic_id>/reply/', views.reply_topic, name='reply_topic'),
     path('boards/<int:board_id>/new/', views.new_topic, name='new_topic'),
     path('admin/', admin.site.urls),
@@ -45,8 +48,12 @@ urlpatterns = [
         name='password_change'),
     path('settings/password/done/', auth_views.PasswordChangeDoneView.as_view(
         template_name='password_change_done.html'), name='password_change_done'),
-    path('new_post/', views.NewPostView.as_view(), name='new_post')
+    path('new_post/', views.NewPostView.as_view(), name='new_post'),
+    path('boards/<int:board_id>/topics/<int:topic_id>/posts/<post_pk>/edit/',
+         views.PostUpdateView.as_view(), name='edit_post'),
+    path('settings/account/', accounts_view.UserUpdateView.as_view(), name='my_account')
 ]
+
 
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL,

@@ -36,3 +36,6 @@ tr {
 button.btn-primary {
     width: 100%;
 }
+table.table {
+    background-color: white;
+}
