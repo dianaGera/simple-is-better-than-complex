@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load humanize %}
+{% load static humanize %}
 
 {% block title %}{{ board.name }} - {{ block.super }}{% endblock %}
 
@@ -27,7 +27,7 @@
     {% url 'topic_posts' board.pk topic.pk as topic_url %}
     <tr>
         <td>
-            <p class="mb-0"><a href="{{ topic_url }}">{{ topic.subject }}</a></p>
+            <a href="{{ topic_url }}">{{ topic.subject }}</a>
             <small class="text-muted">
                 Pages:
                 {% for i in topic.get_page_range %}
@@ -46,6 +46,7 @@
     {% endfor %}
     </tbody>
 </table>
+
 {% include 'includes/pagination.html' %}
 
 {% endblock %}

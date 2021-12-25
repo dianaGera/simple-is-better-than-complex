@@ -39,3 +39,9 @@ button.btn-primary {
 table.table {
     background-color: white;
 }
+.card-footer {
+    margin-top: 20px;
+}
+.form_bth {
+    margin-bottom: 20px;
+}

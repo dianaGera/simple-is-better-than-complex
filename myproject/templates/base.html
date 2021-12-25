@@ -41,17 +41,14 @@
     </div>
 </nav>
 <div class="container">
-    <ol class="breadcrumb my-4">
-        {% block breadcrumb %}
-        {% endblock %}
-    </ol>
+    <ol class="breadcrumb my-4"> {% block breadcrumb %}{% endblock %}</ol>
     {% block content %}
     {% endblock %}
 </div>
 {% endblock body %}
-<script src="{% static 'boards/js/jquery-3.2.1.min.js' %}"></script>
+<script src="{% static 'boards/js/jquery.min.js' %}"></script>
 <script src="{% static 'boards/js/popper1.min.js' %}"></script>
 <script src="{% static 'boards/js/bootstrap1.min.js' %}"></script>
-{% block javascript %}{% endblock %}
+{% block javascript %} {% endblock %}
 </body>
 </html>

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Sign up to Django Boards{% endblock %}
+{% block content %}
+<div class="card text-center">
+    <div class="card-header">
+        Sign up
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">Sign up as for a free account</h5>
+        <p class="card-text">Select below the type of account you want to create</p>
+        <div class="btn-group" role="group" aria-label="Basic example">
+            <a href="{% url 'signup_reader' %}" class="btn btn-primary">Reader</a>
+        </div>
+        <div class="btn-group" role="group">
+            <a href="{% url 'signup_blogger' %}" class="btn btn-primary">Blogger</a>
+        </div>
+    </div>
+    <div class="card-footer text-muted">
+        Already have an account? <a href="{% url 'login' %}">Log in</a>
+    </div>
+</div>
+{% endblock %}

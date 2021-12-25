@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static  %}
+
+{% block javascript %}
+<script src="{% static 'boards/js/boards.js' %}"></script>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Boards</li>
+{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+{% endif %}
+
+{% if request.user.is_blogger %}
+<p>
+    <button type="button" class="btn btn-outline-dark js-create-book"
+                          data-url="{% url 'create_boards' %}">
+        <span class="glyphicon glyphicon-plus"></span>
+        New Board
+    </button>
+</p>
+{% endif %}
+<table class="table" id="book-table">
+    <thead class="thead-inverse">
+    <tr>
+        <th>Board</th>
+        <th>Posts</th>
+        <th>Topics</th>
+        <th>Last Post</th>
+        {% if request.user.is_blogger %}
+        <th></th>
+        <th></th>
+        {% endif %}
+    </tr>
+    </thead>
+    <tbody>
+    {% include 'includes/boards_list.html' %}
+    </tbody>
+</table>
+
+<!--used for creating modal window. the content of that block contains on
+create_boards.html template + board.js-->
+<div class="modal fade" id="modal-book">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
+{% endblock %}

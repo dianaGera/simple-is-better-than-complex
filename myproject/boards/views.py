@@ -1,15 +1,18 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Count
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import Http404
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, UpdateView, ListView
+from .templatetags.restriction import is_blogger
 
-from .forms import NewTopicForm, PostForm
+from .forms import NewTopicForm, PostForm, CreateBoards
 from .models import Board, Topic, Post
 
 
@@ -21,9 +24,79 @@ from .models import Board, Topic, Post
 class BoardListView(ListView):
     model = Board
     context_object_name = 'boards'
-    template_name = 'home.html'
+    template_name = 'boards/home.html'
 
 
+@login_required
+@is_blogger
+def create_boards(request):
+    if request.method == 'POST':
+        form = CreateBoards(request.POST)
+    else:
+        form = CreateBoards()
+    return save_boards(request, form, 'boards/create_boards.html')
+
+
+@login_required
+@is_blogger
+def update_boards(request, board_id):
+    board = get_object_or_404(Board, pk=board_id)
+    if request.method == 'POST':
+        form = CreateBoards(request.POST, instance=board)
+    else:
+        form = CreateBoards(instance=board)
+    return save_boards(request, form, 'boards/update_boards.html')
+
+
+@login_required
+@is_blogger
+def save_boards(request, form, template_name):
+    data = dict()
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            data['form_is_valid'] = True
+            boards = Board.objects.all()
+            data['boards_list'] = render_to_string('includes/boards_list.html',
+                                                   {'boards': boards})
+            #!?!?!?!?
+            if template_name == 'boards/update_boards.html':
+                messages.success(request, 'Board was updated successfully!')
+            if template_name == 'boards/create_boards.html':
+                messages.success(request, 'Board was created successfully!')
+        else:
+            data['form_is_valid'] = False
+            messages.error(request, 'Something went wrong. Try again')
+    context = {'form': form}
+    data['html_form'] = render_to_string(template_name, context, request=request)
+    return JsonResponse(data)
+
+
+@login_required
+@is_blogger
+def delete_boards(request, board_id):
+    board = get_object_or_404(Board, pk=board_id)
+    data = dict()
+    if request.method == 'POST':
+        board.delete()
+        data['form_is_valid'] = True
+        boards = Board.objects.all()
+        data['boards_list'] = render_to_string('includes/boards_list.html',
+                                               {'boards': boards})
+        messages.success(request, 'Board was deleted successfully')
+    else:
+        context = {'board': board}
+        data['html_form'] = render_to_string('boards/delete_boards.html',
+                                             context, request=request)
+        #!?!?!?
+    try:
+        Board.objects.get(pk=board_id)
+    except ObjectDoesNotExist:
+        messages.error(request, 'Something went wrong. Try again')
+    return JsonResponse(data)
+
+
+# board_topics FCV
 # def board_topics(request, board_id):
 #     board = get_object_or_404(Board, pk=board_id)
 #     queryset = board.topics.order_by('-last_updated').annotate(replies=Count('posts')-1)
@@ -37,13 +110,15 @@ class BoardListView(ListView):
 #     except EmptyPage:
 #         topics = paginator.page(paginator.num_pages)
 #
-#     return render(request, 'topics.html', {'board': board, 'topics': topics})
+#     return render(request, 'boards/topics.html', {'board': board, 'topics': topics})
 
+
+# board_topics GCBV with pagination
 class TopicListView(ListView):
     model = Topic
     context_object_name = 'topics'
-    template_name = 'topics.html'
-    paginate_by = 20
+    template_name = 'boards/topics.html'
+    paginate_by = 15
 
     def get_context_data(self, **kwargs):
         kwargs['board'] = self.board
@@ -51,8 +126,26 @@ class TopicListView(ListView):
 
     def get_queryset(self):
         self.board = get_object_or_404(Board, pk=self.kwargs.get('board_id'))
-        queryset = self.board.topics.order_by('-last_updated').annotate(replies=Count('posts') - 1)
+        queryset = self.board.topics.order_by('-last_updated').annotate(replies=Count('posts'))
         return queryset
+
+
+# board_topics FCV with infinity scroll
+def test(request, board_id):
+    board = get_object_or_404(Board, pk=board_id)
+    topics = Topic.objects.filter(board=board).order_by('-last_updated').annotate(replies=Count('posts') - 1)
+    number_list = range(1, 1000)
+    page = request.GET.get('page', 1)
+    paginator = Paginator(number_list, 5)
+
+    try:
+        numbers = paginator.page(page)
+    except PageNotAnInteger:
+        numbers = paginator.page(1)
+    except EmptyPage:
+        numbers = paginator.page(paginator.num_pages)
+
+    return render(request, 'boards/test.html', {'board': board, 'numbers': numbers})
 
 
 @login_required
@@ -73,18 +166,18 @@ def new_topic(request, board_id):
             return redirect('topic_posts', board_id=board_id, topic_id=topic.id)
     else:
         form = NewTopicForm()
-    return render(request, 'new_topic.html', {'board': board, 'form': form})
+    return render(request, 'boards/new_topic.html', {'board': board, 'form': form})
 
 
 # def topic_posts(request, board_id, topic_id):
 #     topic = get_object_or_404(Topic, board__pk=board_id, pk=topic_id)
 #     topic.views += 1
 #     topic.save()
-#     return render(request, 'topic_posts.html', {'topic': topic})
+#     return render(request, 'boards/topic_posts.html', {'topic': topic})
 
 class PostListView(ListView):
     model = Post
-    template_name = 'topic_posts.html'
+    template_name = 'boards/topic_posts.html'
     context_object_name = 'posts'
     paginate_by = 4
 
@@ -130,14 +223,14 @@ def reply_topic(request, board_id, topic_id):
             return redirect(topic_post_url)
     else:
         form = PostForm()
-    return render(request, 'reply_topic.html', {'form': form, 'topic': topic})
+    return render(request, 'boards/reply_topic.html', {'form': form, 'topic': topic})
 
 
 class NewPostView(CreateView):
     model = Post
     form_class = PostForm
     success_url = reverse_lazy('post_list')
-    template_name = 'new_post.html'
+    template_name = 'boards/new_post.html'
 
 
 #The way we use view decorators on class-based views
@@ -145,7 +238,7 @@ class NewPostView(CreateView):
 class PostUpdateView(UpdateView):
     model = Post
     fields = ('message', )
-    template_name = 'edit_post.html'
+    template_name = 'boards/edit_post.html'
     pk_url_kwarg = 'post_pk'
     context_object_name = 'post'
 

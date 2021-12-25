@@ -38,7 +38,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+
+    'django.contrib.sites',
+    'django.contrib.flatpages',
+
     'widget_tweaks',
+
+    "crispy_forms",
+    "crispy_bootstrap5",
+
     'accounts',
     'boards',
 ]
@@ -135,4 +143,11 @@ LOGOUT_REDIRECT_URL = 'home'
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
 
+AUTH_USER_MODEL = 'accounts.User'
+
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+SITE_ID = 1

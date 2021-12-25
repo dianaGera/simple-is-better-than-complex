@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block title %}{{ board.name }} - {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'home' %}">Boards</a></li>
+<li class="breadcrumb-item active">{{ board.name }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{% url 'new_topic' board.pk %}" class="btn btn-primary">New topic</a>
+</div>
+<table class="table table-striped mb-4">
+    <thead class="thead-inverse">
+    <tr>
+        <th>Topic</th>
+        <th>Starter</th>
+        <th>Replies</th>
+        <th>Views</th>
+        <th>Last Update</th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<div class="infinite-container">
+    {% for number in numbers %}
+    <div class="infinite-item">{{ number }}</div>
+    {% endfor %}
+</div>
+
+{% if numbers.has_next %}
+<a class="infinite-more-link" href="?page={{ numbers.next_page_number }}">More</a>
+{% endif %}
+
+<div class="loading" style="display: none;">
+    Loading...
+</div>
+
+<script>
+    var infinite = new Waypoint.Infinite({
+      element: $('.infinite-container')[0],
+      onBeforePageLoad: function () {
+        $('.loading').show();
+      },
+      onAfterPageLoad: function ($items) {
+        $('.loading').hide();
+      }
+    });
+</script>
+<script>
+    var infinite = new Waypoint.Infinite({
+      element: $('.infinite-container')[0]
+    });
+</script>
+
+{% include 'includes/pagination.html' %}
+
+{% block javascript %}
+<script src="{% static 'boards/js/infinite-scroll.pkgd.min.js' %}"></script>
+<script src="{% static 'boards/js/waypoint.js' %}"></script>
+{% endblock javascript %}
+
+<script>
+    var infinite = new Waypoint.Infinite({
+      element: $('.infinite-container')[0]
+    });
+  </script>
+{% endblock %}
