@@ -1,31 +1,59 @@
 body {
   background-image: url(../img/dot-grid.png);
 }
-.logo {
-  font-family: 'Peralta', cursive;
+.content {
+    min-height: 850px;
+}
+nav {
+    background-color: #FF87AB;
+}
+.navbar {
+    padding: 2px;
+}
+.navbar-brand {
+    color: white;
+    font-family: 'Amiri', serif;
+    font-size: 24px;
+}
+.navbar-brand:hover, .navbar-brand:active, a.nav-link:hover, a.nav-link:focus {
+    text-decoration: none;
+    color: #FADDE1;
+}
+.btn {
+    background-color: #FFACC5;
+    border: 1px solid #FFA6C1;
+}
+.btn:hover, .btn:active, .btn:focus {
+    background-color: #FF7AA3;
+    border: 1px solid #FFACC5;
+}
+a {
+    color: #651ee8;
+}
+a:hover {
+    color: #FF5D8F;
+}
+a.nav-link {
+    color: white;
 }
 .logo a {
-  color: rgba(0,0,0,.9);
+  color: #FF5D8F;
 }
 .logo a:hover, .logo a:active {
   text-decoration: none;
+  color: #FF5D8F;
 }
 tr {
     border-bottom: 2px solid #e6e8eb;
 }
-.breadcrumb-item.active {
-}
 .breadcrumb {
     padding: 10px;
-    background-color: #e6e8eb;
+    background-color: #FADDE1;
     border-radius: 5px;
 }
 .thead-inverse {
     color: white;
-    background-color: black;
-}
-.navbar-brand {
-  font-family: 'Peralta', cursive;
+    background-color: #FF7AA3;
 }
 .form-group {
     margin: 10px 0;
@@ -44,4 +72,30 @@ table.table {
 }
 .form_bth {
     margin-bottom: 20px;
+}
+footer {
+    padding-top: 5px;
+    background-color: #FADDE1;
+}
+.card-header {
+    color: white;
+    background-color: #FF7AA3;
+}
+.btn .border-pink {
+    border-color: #FF7AA3;
+}
+.btn .border-yellow {
+    border: 1.5px solid #FFCAD4;
+}
+.border-yellow1 {
+    border: 1.5px solid #FFCAD4;
+    background-color: #fff1c8;
+}
+.border-yellow1:hover, {
+    background-color: #FADDE1;
+}
+.alert-success {
+    background-color: #ffe6ed;
+    border: none;
+    color: #FF7AA3;
 }

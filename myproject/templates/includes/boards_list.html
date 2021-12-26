@@ -23,12 +23,12 @@
     </td>
     {% if request.user.is_blogger %}
     <td class="align-middle"><button type="button"
-                class="btn btn-warning btn-sm js-update-book"
+                class="btn btn-sm border-yellow1 js-update-book"
                 data-url="{% url 'update_boards' board.id %}">
         <span class="glyphicon glyphicon-pencil"></span> Edit
     </button>
     <button type="button"
-                class="btn btn-danger btn-sm js-delete-book"
+                class="btn btn-sm border-pink js-delete-book"
                 data-url="{% url 'delete_boards' board.id %}">
         <span class="glyphicon glyphicon-trash"></span> Delete
     </button></td>

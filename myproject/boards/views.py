@@ -84,15 +84,16 @@ def delete_boards(request, board_id):
         data['boards_list'] = render_to_string('includes/boards_list.html',
                                                {'boards': boards})
         messages.success(request, 'Board was deleted successfully')
+        #!?!?!?
+        try:
+            board in boards
+        except ObjectDoesNotExist:
+            messages.error(request, 'Something went wrong. Try again')
     else:
         context = {'board': board}
         data['html_form'] = render_to_string('boards/delete_boards.html',
                                              context, request=request)
-        #!?!?!?
-    try:
-        Board.objects.get(pk=board_id)
-    except ObjectDoesNotExist:
-        messages.error(request, 'Something went wrong. Try again')
+
     return JsonResponse(data)
 
 

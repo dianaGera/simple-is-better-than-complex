@@ -15,6 +15,17 @@
                     <button type="submit" class="btn btn-primary btn-block">Log in</button>
                 </form>
             </div>
+            <div class="oauth">
+                {% load socialaccount %}
+                <a
+                        href="{% provider_login_url 'github' %}"><span class="icon-github-circled-alt2"
+                                                                       style="color: black"></span></a>
+                <a href="{% provider_login_url 'twitter' %}"><span class="icon-twitter-1"></span></a>
+                <a href="{% provider_login_url 'google' %}"><span class="icon-gplus"
+                                                                  style="color: red"></span></a>
+                <a href="{% provider_login_url 'linkedin_oauth2' %}"><span class="icon-linkedin-1"></span></a>
+            </div>
+
             <div class="card-footer text-muted text-center">
                 New to Django Boards? <a href="{% url 'signup' %}">Sign up</a>
             </div>
