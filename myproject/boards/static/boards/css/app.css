@@ -91,11 +91,55 @@ footer {
     border: 1.5px solid #FFCAD4;
     background-color: #fff1c8;
 }
-.border-yellow1:hover, {
-    background-color: #FADDE1;
+.border-yellow1:hover {
+    background-color: #ffc247;
+}
+.border-blue {
+    border: 1.5px solid #7aceff;
+    background-color: #abcfff;
+}
+.border-blue:hover {
+    background-color: ##85b9ff;
 }
 .alert-success {
     background-color: #ffe6ed;
     border: none;
     color: #FF7AA3;
+}
+.page-item.active .page-link {
+    background-color: #FF7AA3;
+    border-color: #FF7AA3;
+
+}
+.page-link {
+    color: #ff4a82;
+}
+.right {
+    margin-left: auto;
+    margin-right: 0;
+}
+#div_id_birthday {
+    display: flex;
+    margin-right: 20x;
+}
+.form-label {
+    display: block;
+    margin-right: 50px;
+}
+.selectdatewidget {
+    margin-right: 10px;
+}
+.captch {
+    margin: auto;
+}
+.export, .export:hover {
+    color: black;
+    text-decoration: none;
+}
+
+.export-text {
+    font-size: 18px;
+}
+.activity-title {
+    color: #313958;
 }

@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'django_celery_results',
+
     # allauth
     # Link: https://testdriven.io/blog/django-social-auth/
     "django.contrib.sites",
@@ -46,16 +48,16 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     # social providers
     "allauth.socialaccount.providers.github",
-    "allauth.socialaccount.providers.twitter",      #not done
+    "allauth.socialaccount.providers.twitter",       #not done
     'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.linkedin',
+    'allauth.socialaccount.providers.linkedin',      #not done
     'allauth.socialaccount.providers.linkedin_oauth2',
 
-
+    'simple_history',
+    
     'django.contrib.humanize',
 
-    'django.contrib.flatpages',     # build-in app for creating flat pages
-
+    'django.contrib.flatpages',
 
     'widget_tweaks',
 
@@ -102,6 +104,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
 ROOT_URLCONF = 'myproject.urls'
@@ -185,8 +188,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.User'
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
@@ -208,3 +209,16 @@ LOGOUT_URL = 'logout'
 LOGOUT_REDIRECT_URL = 'home'
 ACCOUNT_LOGOUT_REDIRECT_URL ='/accounts/login/'
 LOGIN_REDIRECT_URL = 'home'
+
+GOOGLE_RECAPTCHA_SECRET_KEY = '6LcSN9AdAAAAAFgJ6irJwywjSnnSaZXp6weP4waY'
+
+
+EMAIL_BACKEND ='django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'djangoproject64@gmail.com'
+EMAIL_HOST_PASSWORD = 'kzejvzjmfdwdqsob'
+
+CELERY_BROKER_URL = 'amqp://localhost'
+#run celery: celery -A myproject worker -l info

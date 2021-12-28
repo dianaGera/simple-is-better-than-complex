@@ -5,6 +5,7 @@ from django.forms import SelectDateWidget
 from django.contrib.auth import get_user_model
 from .models import Reader, Category, Interests, Blogger
 from datetime import datetime
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 User = get_user_model()
 
@@ -12,9 +13,8 @@ User = get_user_model()
 class SignupBloggerForm(UserCreationForm):
     category = forms.ModelMultipleChoiceField(
         queryset=Category.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
-        required=True
-    )
+        required=True,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'p-1'}))
     birthday = forms.DateField(widget=SelectDateWidget(
             years=range(1960, datetime.now().year+1)),
         initial=datetime.now())
@@ -60,3 +60,12 @@ class SignupReaderForm(UserCreationForm):
         reader.interests.add(*self.cleaned_data.get('interests'))
         reader.is_adult = self.cleaned_data.get('is_adult')
         return user
+
+
+class GenerateRandomUserForm(forms.Form):
+    total = forms.IntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(500)
+        ]
+    )

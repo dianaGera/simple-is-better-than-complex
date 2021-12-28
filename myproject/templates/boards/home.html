@@ -11,23 +11,13 @@
 
 {% block content %}
 
-{% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}" role="alert">
-        {{ message }}
-    </div>
-    {% endfor %}
-{% endif %}
+<div class="d-flex p-2">
+    {% if request.user.is_blogger %}
+    <button type="button" class="btn btn-outline-dark js-create-book" data-url="{% url 'create_boards' %}">
+        <span class="glyphicon glyphicon-plus"></span>New Board</button>
+    {% endif %}
+</div>
 
-{% if request.user.is_blogger %}
-<p>
-    <button type="button" class="btn btn-outline-dark js-create-book"
-                          data-url="{% url 'create_boards' %}">
-        <span class="glyphicon glyphicon-plus"></span>
-        New Board
-    </button>
-</p>
-{% endif %}
 <table class="table" id="book-table">
     <thead class="thead-inverse">
     <tr>
@@ -54,4 +44,9 @@ create_boards.html template + board.js-->
         </div>
     </div>
 </div>
+<div class="paginator">
+    {% include 'includes/pagination.html' %}
+</div>
+
+
 {% endblock %}

@@ -2,8 +2,8 @@ from django.urls import path
 from boards import views
 
 urlpatterns = [
-    # path('', views.home, name='home'),
-    path('', views.BoardListView.as_view(), name='home'),
+    path('', views.home, name='home'),
+    # path('', views.BoardListView.as_view(), name='home'),
     path('blogger_home/', views.blogger_home, name='blogger_home'),
     # path('boards/<int:board_id>/', views.board_topics, name='board_topics'),
     path('boards/<int:board_id>/', views.TopicListView.as_view(), name='board_topics'),
@@ -22,5 +22,8 @@ urlpatterns = [
     path('boards/<int:board_id>/topics/<int:topic_id>/posts/<post_pk>/edit/',
          views.PostUpdateView.as_view(),
          name='edit_post'),
+    path('export/csv/<int:board_id>', views.export_boards_csv, name='export_boards_csv'),
+    path('export/xls/<int:board_id>', views.export_boards_xls, name='export_boards_xls'),
+    path('export/pdf/<int:board_id>', views.export_boards_pdf, name='export_boards_pdf'),
     path('test/<int:board_id>/', views.test, name='test'),
 ]

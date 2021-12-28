@@ -2,12 +2,14 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db.models import signals
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.generic import UpdateView, CreateView
-
-from .forms import SignupReaderForm, SignupBloggerForm
+from django.views.generic import UpdateView, CreateView, FormView
+from django.http import HttpResponse
+from .forms import SignupReaderForm, SignupBloggerForm, GenerateRandomUserForm
+from myproject.tasks import create_random_user_accounts, send_email
 
 
 # def signup(request):
@@ -38,6 +40,11 @@ class ReaderSignup(CreateView):
     def form_valid(self, form):
         user = form.save()
         login(self.request, user)
+        subject = f'Hello {self.request.user}!'
+        message = 'Congratulations on your successful registration as a Reader on our website'
+        recipient_list = [self.request.user.email]
+        send_email.delay(subject, message, recipient_list)
+        messages.success(self.request, message)
         return redirect('home')
 
 
@@ -53,7 +60,12 @@ class BloggerSignup(CreateView):
     def form_valid(self, form):
         user = form.save()
         login(self.request, user)
-        return redirect('home')
+        subject = f'Hello {self.request.user}!'
+        message = 'Congratulations on your successful registration as a Blogger on our website'
+        recipient_list = [self.request.user.email]
+        send_email.delay(subject, message, recipient_list)
+        messages.success(self.request, message)
+        return redirect('blogger_home')
 
 
 #for displaying messages you can also use build-in Django SuccessMessageMixin
@@ -68,9 +80,29 @@ class UserUpdateView(UpdateView):
         return self.request.user
 
     def form_valid(self, form):
-        messages.success(self.request, "Your account information was updated successfully")
+        subject = f'Hello {self.request.user}!'
+        message = f'{self.request.user}, your account information was updated successfully'
+        recipient_list = [self.request.user.email]
+        send_email.delay(subject, message, recipient_list)
+        messages.success(self.request, message)
         return super().form_valid(form)
 
     def form_invalid(self, form):
         messages.error(self.request, "Something went wrong. Try again")
         return super().form_invalid(form)
+
+    # def get_success_url(self):
+    #     if self.request.user.is_blogger:
+    #         return reverse_lazy('blogger_home')
+    #     return reverse_lazy('home')
+
+
+class GenerateRandomUserView(FormView):
+    template_name = 'accounts/admin_page.html'
+    form_class = GenerateRandomUserForm
+
+    def form_valid(self, form):
+        total = form.cleaned_data.get('total')
+        create_random_user_accounts.delay(total)
+        messages.success(self.request, 'We are generating your random users! Wait a moment and refresh this page.')
+        return redirect('home')

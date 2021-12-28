@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load static humanize %}
 
 {% block title %}{{ board.name }} - {{ block.super }}{% endblock %}
 
@@ -9,8 +8,18 @@
 {% endblock %}
 
 {% block content %}
-<div class="mb-4">
+<div class="d-flex p-2">
     <a href="{% url 'new_topic' board.pk %}" class="btn btn-primary">New topic</a>
+
+<div class="right">
+    <span class="export-text">Export: </span>
+    <button type="button"
+            class="btn btn-sm border-yellow1"><a class='export' href="{% url 'export_boards_csv' board.id %}">CSV</a></button>
+    <button type="button"
+            class="btn btn-sm border-pink"><a class='export' href="{% url 'export_boards_xls' board.id %}">XLS</a></button>
+    <button type="button"
+            class="btn btn-sm border-blue"><a class='export' href="{% url 'export_boards_pdf' board.id %}">PDF</a></button>
+</div>
 </div>
 <table class="table table-striped mb-4">
     <thead class="thead-inverse">
@@ -23,27 +32,7 @@
     </tr>
     </thead>
     <tbody>
-    {% for topic in topics %}
-    {% url 'topic_posts' board.pk topic.pk as topic_url %}
-    <tr>
-        <td>
-            <a href="{{ topic_url }}">{{ topic.subject }}</a>
-            <small class="text-muted">
-                Pages:
-                {% for i in topic.get_page_range %}
-                <a href="{{ topic_url }}?page={{ i }}">{{ i }}</a>
-                {% endfor %}
-                {% if topic.has_many_pages %}
-                ... <a href="{{ topic_url }}?page={{ topic.get_page_count }}">Last Page</a>
-                {% endif %}
-            </small>
-        </td>
-        <td class="align-middle">{{ topic.starter.username }}</td>
-        <td class="align-middle">{{ topic.replies }}</td>
-        <td class="align-middle">{{ topic.views }}</td>
-        <td class="align-middle">{{ topic.last_updated|naturaltime }}</td>
-    </tr>
-    {% endfor %}
+    {% include 'includes/topics_list.html' %}
     </tbody>
 </table>
 

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">Put amount of random users you want to create:</li>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <script src='https://www.google.com/recaptcha/api.js'></script>
+    <div class="g-recaptcha m-3" data-sitekey="6LcSN9AdAAAAAFgJ6irJwywjSnnSaZXp6weP4waY"></div>
+
+    <button type="submit" class="btn btn-primary btn-block">Create an account</button>
+</form>
+{% endblock content %}

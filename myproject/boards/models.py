@@ -1,16 +1,19 @@
 import math
-
 from django.conf import settings
 from django.db import models
-from django.contrib.auth.models import User, AbstractUser
 from django.utils.safestring import mark_safe
 from django.utils.text import Truncator
 from markdown import markdown
+from simple_history.models import HistoricalRecords
+
+from django.db.models import signals
+from boards.signals import create_post
 
 
 class Board(models.Model):
     name = models.CharField(max_length=30, unique=True)
     description = models.CharField(max_length=100)
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
@@ -63,12 +66,14 @@ class Post(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='posts')
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name='+')
 
-
     def __str__(self):
         short_message = Truncator(self.message)
         return short_message.chars(30)
 
     def get_message_as_markdown(self):
         return mark_safe(markdown(self.message, safe_mode='escape'))
+
+
+signals.post_save.connect(create_post, sender=Post)
 
 

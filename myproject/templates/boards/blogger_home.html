@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}<h4 class="activity-title">Your recent activity: </h4>{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-lg-10 col-md-12 col-sm-10">
+        <div class="card mt-4">
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th scope="col">Board</th>
+                        <th scope="col">Action</th>
+                        <th scope="col">Date</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for i in history.all%}
+                    <tr>
+                        {% if i.history_user == request.user %}
+                        {%if i.history_type == '-'%}
+                        <td class="activity-title"><a
+                                href="#">{{i.history_object}}</a></td>
+                        {%elif not i.history_type == '-'%}
+                        <td class="activity-title"><a
+                                href="{% url 'board_topics' i.history_object.pk %}">{{i.history_object}}</a></td>
+                        {% endif %}
+                        {%if i.history_type == '+'%}
+                        <td class="text-success">Create</td>
+                        {%elif i.history_type == '~' %}
+                        <td class="text-warning">Update</td>
+                        {%elif i.history_type == '-'%}
+                        <td class="text-danger">Delete</td>
+                        {%endif%}
+                        <td class="text-secondary">{{i.history_date}}</td>
+                    </tr>
+                    {%endif%}
+                    {%endfor%}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<!--{% for i in history.all%}-->
+<!--<tr>-->
+<!--    {% if i.history_user == request.user %}-->
+<!--    <td class="text-success">YOU</td>-->
+<!--    {% elif i.history_user == None %}-->
+<!--    <td>Admin</td>-->
+<!--    {% else %}-->
+<!--    <td>{{i.history_user}}</td>-->
+<!--    {%endif%}-->
+<!--    {%if i.history_type == '-'%}-->
+<!--    <td class="activity-title"><a-->
+<!--            href="#">{{i.history_object}}</a></td>-->
+<!--    {%elif not i.history_type == '-'%}-->
+<!--    <td class="activity-title"><a-->
+<!--            href="{% url 'board_topics' i.history_object.pk %}">{{i.history_object}}</a></td>-->
+<!--    {% endif %}-->
+<!--    {%if i.history_type == '+'%}-->
+<!--    <td class="text-success">Create</td>-->
+<!--    {%elif i.history_type == '~' %}-->
+<!--    <td class="text-warning">Update</td>-->
+<!--    {%elif i.history_type == '-'%}-->
+<!--    <td class="text-danger">Delete</td>-->
+<!--    {%endif%}-->
+<!--    <td class="text-secondary">{{i.history_date}}</td>-->
+<!--</tr>-->
+<!--{%endfor%}-->
+<!--<div class="paginator">-->
+<!--    {% include 'includes/pagination.html' %}-->
+<!--</div>-->
+<!--{% endblock %}-->

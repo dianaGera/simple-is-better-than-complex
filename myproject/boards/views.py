@@ -1,30 +1,87 @@
+import csv
+import xlwt
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.files.storage import FileSystemStorage
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Count
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic import CreateView, UpdateView, ListView
 from .templatetags.restriction import is_blogger
-
 from .forms import NewTopicForm, PostForm, CreateBoards
 from .models import Board, Topic, Post
+from myproject.tasks import send_email
+from weasyprint import HTML
 
 
-# def home(request):
-#     boards = Board.objects.all()
-#     return render(request, 'home.html', {'boards': boards})
+def home(request):
+    boards = Board.objects.all()
+    page = request.GET.get('page', 1)
+    paginator = Paginator(boards, 10)
+    page_obj = paginator.get_page(page)
+    try:
+        boards = paginator.page(page)
+    except PageNotAnInteger:
+        boards = paginator.page(1)
+    except EmptyPage:
+        boards = paginator.page(paginator.num_pages)
+
+    return render(request, 'boards/home.html', {'boards': boards, 'page_obj': page_obj, 'paginator': paginator})
 
 
-class BoardListView(ListView):
-    model = Board
-    context_object_name = 'boards'
-    template_name = 'boards/home.html'
+# class BoardListView(ListView):
+#     model = Board
+#     context_object_name = 'boards'
+#     template_name = 'boards/home.html'
+#     paginate_by = 11
+#
+#     # def get_queryset(self):
+#     #     return Post.objects.all()
+
+@login_required
+@is_blogger
+def blogger_home(request):
+    history = Board.history.all()
+    page_num = request.GET.get('page')
+    paginator = Paginator(history, 10)
+    page_obj = paginator.get_page(page_num)
+
+    try:
+        page_obj = paginator.page(page_num)
+    except PageNotAnInteger:
+        # Если страница не является целым числом,возвращаем первую страницу.
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        # Если номер страницы больше, чем общее количество страниц,
+        # возвращаем последнюю.
+        page_obj = paginator.page(paginator.num_pages)
+    context = {
+        'history': history,
+        'page_obj': page_obj,
+        'paginator': paginator
+    }
+    return render(request, 'boards/blogger_home.html', context=context)
+
+#
+# class Blogger_home(ListView):
+#     model = Board
+#     context_object_name = 'boards'
+#     template_name = 'home.html'
+#     paginate_by = 10
+#     ordering= ['-id']
+#     def get_context_data(self,**kwargs):
+#         # messages.add_message(self.request,messages.SUCCESS,'khftyde')
+#         context = super().get_context_data(**kwargs)
+#         context['bloger'] = get_user_status(self.request)
+#         context['history'] = Board.history.all()[:10]
+#         context['boards'] = Board.objects.filter(is_activ=True).prefetch_related('topic_set')
+#         return context
 
 
 @login_required
@@ -220,7 +277,11 @@ def reply_topic(request, board_id, topic_id):
                 id=post.pk,
                 page=topic.get_page_count()
             )
-
+            # subject = f'Hello {topic.starter}!'
+            message = f'You create new post!!'
+            # recipient_list = [topic.starter.email]
+            # send_email.delay(subject, message, recipient_list)
+            messages.success(request, message)
             return redirect(topic_post_url)
     else:
         form = PostForm()
@@ -255,4 +316,65 @@ class PostUpdateView(UpdateView):
         return redirect('topic_posts', board_id=post.topic.board.pk, topic_id=post.topic.pk)
 
 
+def export_boards_csv(request, board_id):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="boards.csv"'
 
+    writer = csv.writer(response)
+    writer.writerow(['name', 'description'])
+
+    topics = Board.objects.get(pk=board_id).topics.all().values_list('subject', 'board', 'starter', 'views')
+    for topic in topics:
+        writer.writerow(topic)
+    return response
+
+
+def export_boards_xls(request, board_id):
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="TopicsXml.xls"'
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('Topics')
+
+    row_num = 0
+
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+
+    columns = ['subject', 'board', 'starter', 'views']
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style)
+
+    font_style = xlwt.XFStyle()
+
+    rows = Board.objects.get(pk=board_id).topics.all().values_list('subject', 'board', 'starter', 'views')
+    if len(rows) > 1:
+        for row in rows:
+            row_num += 1
+            for col_num in range(len(row)):
+                ws.write(row_num, col_num, row[col_num], font_style)
+
+        wb.save(response)
+        return response
+    return redirect('home')
+
+
+def export_boards_pdf(request, board_id):
+    board = Board.objects.get(pk=board_id)
+    topics = board.topics.all()
+    if len(topics) > 1:
+        html_string = render_to_string(
+            'includes/topics_list.html', {'topics': topics, 'board': board})
+
+        html = HTML(string=html_string)
+        html.write_pdf(target=f'/tmp/{board.name}.pdf')
+
+        fs = FileSystemStorage('/tmp')
+        with fs.open(f'{board.name}.pdf') as pdf:
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{board.name}.pdf"'
+            return response
+    else:
+        messages.add_message(request, messages.ERROR, 'Failed')
+    return redirect('home')
