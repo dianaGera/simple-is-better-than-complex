@@ -1,10 +1,17 @@
 import csv
+import sys
+from datetime import time
+from io import BytesIO
+
 import xlwt
+from PIL.Image import Image
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.files.storage import FileSystemStorage
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db import transaction
 from django.db.models import Count
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
@@ -12,11 +19,11 @@ from django.template.loader import render_to_string
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.generic import CreateView, UpdateView, ListView
 from .templatetags.restriction import is_blogger
 from .forms import NewTopicForm, PostForm, CreateBoards
-from .models import Board, Topic, Post
-from myproject.tasks import send_email
+from .models import Board, Topic, Post, Photo
 from weasyprint import HTML
 
 
@@ -206,25 +213,124 @@ def test(request, board_id):
     return render(request, 'boards/test.html', {'board': board, 'numbers': numbers})
 
 
+# @login_required
+# def new_topic(request, board_id):
+#     board = get_object_or_404(Board, pk=board_id)
+#     if request.method == 'POST':
+#         form = NewTopicForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             topic = form.save(commit=False)
+#             topic.board = board
+#             topic.starter = request.user
+#
+#             topic.save()
+#             post = Post.objects.create(
+#                 message=form.cleaned_data.get('message'),
+#                 topic=topic,
+#                 created_by=request.user,
+#             )
+#             data = {'is_valid': True, 'name': topic.file.name, 'url': topic.file.url}
+#             # return redirect('topic_posts', board_id, topic.pk)
+#         else:
+#             data = {'is_valid': False}
+#         return JsonResponse(data)
+#     else:
+#         form = NewTopicForm()
+#         file = PhotoForm()
+#     return render(request, 'boards/new_topic.html', {'board': board, 'form': form})
+
+def get_image(photo):
+    img3 = Image.open(photo)
+    new_img3 = img3.convert('RGB')
+    res_img3 = new_img3.resize((700, 450), Image.ANTIALIAS)
+    filestream = BytesIO()
+    file_ = res_img3.save(filestream, 'JPEG', quality=90)
+    filestream.seek(0)
+    name = '{}.{}'.format(*photo.name.split('.'))
+    photo = InMemoryUploadedFile(
+        filestream, 'ImageFiedl', name, 'jpeg/image', sys.getsizeof(filestream),  None
+    )
+    return photo
+
+
+@method_decorator(login_required, name='dispatch')
+class New_topicView(View):
+    def get(self, request, board_id):
+        board = get_object_or_404(Board, pk=board_id)
+        form1 = NewTopicForm(request.POST, request.FILES)
+        return render(request, 'boards/new_topic.html', {'board': board, 'form': form1, 'photos': None})
+
+    @transaction.atomic
+    def post(self, request, board_id, images=[]):
+        board = get_object_or_404(Board, pk=board_id)
+        form = NewTopicForm(request.POST, request.FILES)
+        if form.is_valid():
+            if not Topic.objects.filter(subject=form.cleaned_data.get('subject'), board=board):
+                topic = Topic.objects.create(
+                    subject=form.cleaned_data.get('subject'),
+                    starter=request.user,
+                    board=board
+                )
+                Post.objects.create(
+                    message=form.cleaned_data.get('message'),
+                    created_by=request.user,
+                    topic=topic
+                )
+            else:
+                topic = Topic.objects.get(subject=form.cleaned_data.get('subject'), board=board)
+            files = request.FILES.getlist('file')
+
+            for file in images if not files else files:
+                photo = Photo(
+                    title=file.name,
+                    file=file,
+                    topic=topic
+                )
+                photo.save()
+                data = {'is_valid': True, 'name': photo.title}
+
+            if not files:
+                return redirect('board_topics', pk=board_id)
+        else:
+            photo = request.FILES.get('file')
+            images.append(get_image(photo))
+            data = {'is_valid': True, 'name': photo.name}
+        return JsonResponse(data)
+
+
 @login_required
 def new_topic(request, board_id):
+    pass
+
+
+@login_required
+def new_topic(request, board_id):
+    topics = Topic.objects.all()
     board = get_object_or_404(Board, pk=board_id)
     if request.method == 'POST':
-        form = NewTopicForm(request.POST)
-        if form.is_valid():
-            topic = form.save(commit=False)
-            topic.board = board
-            topic.starter = request.user
-            topic.save()
-            post = Post.objects.create(
-                message=form.cleaned_data.get('message'),
-                topic=topic,
-                created_by=request.user
-            )
-            return redirect('topic_posts', board_id=board_id, topic_id=topic.id)
-    else:
-        form = NewTopicForm()
-    return render(request, 'boards/new_topic.html', {'board': board, 'form': form})
+        images = request.FILES.getlist('images')
+        print(images)
+        for image in images:
+            print(image)
+            photo = Photo.objects.create(
+            title='image',
+            file=image,
+            topic=topics.get(pk=1)
+        )
+        return redirect('home')
+    return render(request, 'boards/new_topic.html', {'topics': topics, 'board': board})
+
+    # topic =
+    # if topic == None:
+    #     photos = Photo.objects.all()
+    # else:
+    #     photos = Photo.objects.filter(topic__subject=topic)
+    #
+    # topics = Topic.objects.all()
+    # context = {'topics': topics, 'photos': photos, 'board': board}
+    # return render(request, 'boards/new_topic.html', context)
+
+
 
 
 # def topic_posts(request, board_id, topic_id):

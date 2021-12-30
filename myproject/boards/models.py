@@ -55,6 +55,12 @@ class Topic(models.Model):
     def get_last_ten_posts(self):
         return self.posts.order_by('-created_at')[:10]
 
+    def get_photo(self):
+        return Photo.objects.filter(topic=self).first()
+
+    def get_photos(self):
+        return Photo.objects.filter(topic=self)[1:]
+
 
 #post or user comments about subjects
 class Post(models.Model):
@@ -62,9 +68,12 @@ class Post(models.Model):
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='posts')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(null=True)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='posts')
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name='+')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                   on_delete=models.PROTECT,
+                                   related_name='posts')
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                   on_delete=models.PROTECT,
+                                   null=True, related_name='+')
 
     def __str__(self):
         short_message = Truncator(self.message)
@@ -72,6 +81,13 @@ class Post(models.Model):
 
     def get_message_as_markdown(self):
         return mark_safe(markdown(self.message, safe_mode='escape'))
+
+
+class Photo(models.Model):
+    title = models.CharField(max_length=255, blank=True)
+    file = models.FileField(upload_to='photos/', null=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, null=True)
 
 
 signals.post_save.connect(create_post, sender=Post)

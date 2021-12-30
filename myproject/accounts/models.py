@@ -54,3 +54,9 @@ class Reader(models.Model):
 
         def __str__(self):
             return self.user
+
+
+class Avatar(models.Model):
+    avatar = models.ImageField(upload_to='avatar/')
+    description = models.CharField(max_length=200, blank=True)
+    data = models.DateField(auto_now_add=True)
