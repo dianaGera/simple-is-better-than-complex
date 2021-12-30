@@ -31,5 +31,5 @@ urlpatterns = [
         template_name='accounts/password_change_done.html'),
         name='password_change_done'),
     path('settings/account/', views.UserUpdateView.as_view(), name='my_account'),
-    path('add_users/', views.GenerateRandomUserView.as_view(), name='admin_page')
+    path('add_users/', views.GenerateRandomUserView.as_view(), name='admin_page'),
 ]

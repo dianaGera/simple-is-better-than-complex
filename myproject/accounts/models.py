@@ -27,6 +27,8 @@ class User(AbstractUser):
     #specifying user's types
     is_blogger = models.BooleanField(default=False)
     is_reader = models.BooleanField(default=False)
+    file = models.FileField(upload_to='avatar/', null=True)
+
 
 
 class Blogger(models.Model):
@@ -35,6 +37,7 @@ class Blogger(models.Model):
     birthday = models.DateField()
     country = models.CharField(max_length=50)
     category = models.ManyToManyField(Category)
+
 
     class Meta:
         ordering = ['user']
@@ -54,9 +57,3 @@ class Reader(models.Model):
 
         def __str__(self):
             return self.user
-
-
-class Avatar(models.Model):
-    avatar = models.ImageField(upload_to='avatar/')
-    description = models.CharField(max_length=200, blank=True)
-    data = models.DateField(auto_now_add=True)

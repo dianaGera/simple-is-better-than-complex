@@ -1,10 +1,10 @@
-from PIL.Image import Image
+from PIL import Image
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.db import transaction
 from django.forms import SelectDateWidget
 from django.contrib.auth import get_user_model
-from .models import Reader, Category, Interests, Blogger, Avatar
+from .models import Reader, Category, Interests, Blogger
 from datetime import datetime
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -72,27 +72,32 @@ class GenerateRandomUserForm(forms.Form):
     )
 
 
-class AvatarForm(forms.ModelForm):
-    x = forms.FloatField(widget=forms.HiddenInput)
-    y = forms.FloatField(widget=forms.HiddenInput)
-    width = forms.FloatField(widget=forms.HiddenInput)
-    height = forms.FloatField(widget=forms.HiddenInput)
+class UserForm(forms.ModelForm):
+    x = forms.FloatField(widget=forms.HiddenInput, required=False)
+    y = forms.FloatField(widget=forms.HiddenInput, required=False)
+    width = forms.FloatField(widget=forms.HiddenInput, required=False)
+    height = forms.FloatField(widget=forms.HiddenInput, required=False)
 
     class Meta:
-        model = Avatar
-        fields = ['avatar', 'x', 'y', 'width', 'height', ]
+        model = User
+        fields = ['file', 'username', 'first_name', 'last_name', 'email', 'x', 'y', 'width', 'height', ]
+        widgets = {
+            'file': forms.FileInput(attrs={
+                'accept': 'image/*'
+            })
+        }
 
         def save(self):
-            avatar = super(AvatarForm, self).save()
+            avatar = super(UserForm, self).save()
 
             x = self.cleaned_data.get('x')
             y = self.cleaned_data.get('y')
             w = self.cleaned_data.get('width')
             h = self.cleaned_data.get('height')
 
-            image = Image.open(avatar.avatar)
+            image = Image.open(avatar.file)
             cropped_image = image.crop((x, y, w+x, h+y))
             resized_image = cropped_image.resize((200, 200), Image.ANTIALIAS)
-            resized_image.save(avatar.avatar.path)
+            resized_image.save(avatar.file.path)
 
             return avatar

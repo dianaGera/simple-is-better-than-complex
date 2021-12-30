@@ -1,14 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.db.models import signals
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.generic import UpdateView, CreateView, FormView
 from django.http import HttpResponse
-from .forms import SignupReaderForm, SignupBloggerForm, GenerateRandomUserForm
+from .forms import SignupReaderForm, SignupBloggerForm, GenerateRandomUserForm, UserForm
 from myproject.tasks import create_random_user_accounts, send_email
 
 
@@ -22,6 +21,7 @@ from myproject.tasks import create_random_user_accounts, send_email
 #     else:
 #         form = SignupForm()
 #     return render(request, 'accounts/signup_users.html', {'form': form})
+from .models import User
 
 
 def signup(request):
@@ -72,9 +72,9 @@ class BloggerSignup(CreateView):
 @method_decorator(login_required, name='dispatch')
 class UserUpdateView(UpdateView):
     model = User
-    template_name = 'accounts/my_account.html'
+    form_class = UserForm
+    template_name = 'accounts/photo_list.html'
     success_url = reverse_lazy('home')
-    fields = ['first_name', 'last_name', 'email']
 
     def get_object(self, queryset=None):
         return self.request.user
@@ -95,6 +95,18 @@ class UserUpdateView(UpdateView):
     #     if self.request.user.is_blogger:
     #         return reverse_lazy('blogger_home')
     #     return reverse_lazy('home')
+
+
+# def photo_list(request):
+#     avatars = Avatar.objects.all()
+#     if request.method == 'POST':
+#         form = AvatarForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('home')
+#     else:
+#         form = AvatarForm()
+#     return render(request, 'accounts/photo_list.html', {'form': form, 'photos': avatars})
 
 
 class GenerateRandomUserView(FormView):
