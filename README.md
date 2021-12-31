@@ -148,14 +148,25 @@ ref: https://simpleisbetterthancomplex.com/tutorial/2017/02/21/how-to-add-recapt
 
 Step 3. Read
 
-ref: 
+1 ref: https://simpleisbetterthancomplex.com/tips/2016/10/05/django-tip-16-simple-database-access-optimizations.html
 
-ref:
+2 ref: https://simpleisbetterthancomplex.com/tips/2016/11/01/django-tip-19-protecting-sensitive-information.html
 
-ref:
+3 ref: https://simpleisbetterthancomplex.com/tutorial/2016/11/28/how-to-filter-querysets-dynamically.html
 
-ref:
+4 ref: https://simpleisbetterthancomplex.com/tutorial/2016/12/06/how-to-create-group-by-queries.html
 
+5 ref: https://simpleisbetterthancomplex.com/tutorial/2017/02/06/how-to-implement-case-insensitive-username.html
+
+6 ref: https://simpleisbetterthancomplex.com/questions/2017/03/22/how-to-dynamically-filter-modelchoices-queryset-in-a-modelform.html
+
+7 ref: https://simpleisbetterthancomplex.com/tutorial/2017/09/26/how-to-create-django-data-migrations.html
+
+8 ref: https://simpleisbetterthancomplex.com/tips/2018/02/10/django-tip-22-designing-better-models.html
+
+9 ref: https://simpleisbetterthancomplex.com/tutorial/2018/08/27/how-to-create-custom-django-management-commands.html
+
+10 ref: https://simpleisbetterthancomplex.com/tips/2016/05/16/django-tip-3-optimize-database-queries.html
 
 
 
