@@ -25,5 +25,4 @@ urlpatterns = [
     path('export/csv/<int:board_id>', views.export_boards_csv, name='export_boards_csv'),
     path('export/xls/<int:board_id>', views.export_boards_xls, name='export_boards_xls'),
     path('export/pdf/<int:board_id>', views.export_boards_pdf, name='export_boards_pdf'),
-    path('test/<int:board_id>/', views.test, name='test'),
 ]

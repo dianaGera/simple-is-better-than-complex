@@ -14,7 +14,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db import transaction
 from django.db.models import Count
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy, reverse
 from django.utils import timezone
@@ -28,7 +28,7 @@ from weasyprint import HTML
 
 
 def home(request):
-    boards = Board.objects.all()
+    boards = Board.objects.filter(is_active=True)
     page = request.GET.get('page', 1)
     paginator = Paginator(boards, 10)
     page_obj = paginator.get_page(page)
@@ -183,34 +183,21 @@ class TopicListView(ListView):
     model = Topic
     context_object_name = 'topics'
     template_name = 'boards/topics.html'
-    paginate_by = 15
+    paginate_by = 5
 
     def get_context_data(self, **kwargs):
         kwargs['board'] = self.board
         return super().get_context_data(**kwargs)
 
     def get_queryset(self):
-        self.board = get_object_or_404(Board, pk=self.kwargs.get('board_id'))
+        self.board = Board.objects.filter(is_active=True).get(pk=self.kwargs.get('board_id'))
+        try:
+            self.board
+        except:
+            raise Http404
         queryset = self.board.topics.order_by('-last_updated').annotate(replies=Count('posts'))
         return queryset
 
-
-# board_topics FCV with infinity scroll
-def test(request, board_id):
-    board = get_object_or_404(Board, pk=board_id)
-    topics = Topic.objects.filter(board=board).order_by('-last_updated').annotate(replies=Count('posts') - 1)
-    number_list = range(1, 1000)
-    page = request.GET.get('page', 1)
-    paginator = Paginator(number_list, 5)
-
-    try:
-        numbers = paginator.page(page)
-    except PageNotAnInteger:
-        numbers = paginator.page(1)
-    except EmptyPage:
-        numbers = paginator.page(paginator.num_pages)
-
-    return render(request, 'boards/test.html', {'board': board, 'numbers': numbers})
 
 
 # @login_required

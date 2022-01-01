@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static humanize %}
 
 {% block title %}{{ board.name }} - {{ block.super }}{% endblock %}
 
@@ -11,31 +12,76 @@
 <div class="d-flex p-2">
     <a href="{% url 'new_topic' board.pk %}" class="btn btn-primary">New topic</a>
 
-<div class="right">
-    <span class="export-text">Export: </span>
-    <button type="button"
-            class="btn btn-sm border-yellow1"><a class='export' href="{% url 'export_boards_csv' board.id %}">CSV</a></button>
-    <button type="button"
-            class="btn btn-sm border-pink"><a class='export' href="{% url 'export_boards_xls' board.id %}">XLS</a></button>
-    <button type="button"
-            class="btn btn-sm border-blue"><a class='export' href="{% url 'export_boards_pdf' board.id %}">PDF</a></button>
+    <div class="right">
+        <span class="export-text">Export: </span>
+        <button type="button"
+                class="btn btn-sm border-yellow1"><a class='export' href="{% url 'export_boards_csv' board.id %}">CSV</a></button>
+        <button type="button"
+                class="btn btn-sm border-pink"><a class='export' href="{% url 'export_boards_xls' board.id %}">XLS</a></button>
+        <button type="button"
+                class="btn btn-sm border-blue"><a class='export' href="{% url 'export_boards_pdf' board.id %}">PDF</a></button>
+    </div>
 </div>
+<div class="div-table">
+    <div class="div-table-row">
+        <div class="div-table-col">Topic</div>
+        <div  class="div-table-col">Starter</div>
+        <div  class="div-table-col">Replies</div>
+        <div  class="div-table-col">Views</div>
+        <div  class="div-table-col">Last Update</div>
+    </div>
 </div>
-<table class="table table-striped mb-4">
-    <thead class="thead-inverse">
-    <tr>
-        <th>Topic</th>
-        <th>Starter</th>
-        <th>Replies</th>
-        <th>Views</th>
-        <th>Last Update</th>
-    </tr>
-    </thead>
-    <tbody>
-    {% include 'includes/topics_list.html' %}
-    </tbody>
-</table>
+<div class="book-list">
+    {% for topic in topics %}
+    <div class="card mb-3">
+        <div class="card-body d-flex div-table-row">
+            <div class="div-table-col">
+                <h5 class="card-title"><a href="{{ topic_url }}">{{ topic.subject }}</a></h5>
+                <p class="card-text">
+                    <small class="text-muted">
+                        Pages:
+                        {% for i in topic.get_page_range %}
+                        <a href="{{ topic_url }}?page={{ i }}">{{ i }}</a>
+                        {% endfor %}
+                        {% if topic.has_many_pages %}
+                        ... <a href="{{ topic_url }}?page={{ topic.get_page_count }}">Last Page</a>
+                        {% endif %}
+                    </small>
+                </p>
+            </div>
 
-{% include 'includes/pagination.html' %}
+            <p class="card-text div-table-col">{{ topic.starter.username }}</p>
+            <p class="card-text div-table-col">{{ topic.replies }}</p>
+            <p class="card-text div-table-col">{{ topic.views }}</p>
+            <p class="card-text div-table-col">{{ topic.last_updated|naturaltime }}</p>
+        </div>
+    </div>
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <p class="pagination">
+        <a class="next-page" href="?page={{ page_obj.next_page_number }}">More...</a>
+    </p>
+    {% endif %}
+</div>
 
 {% endblock %}
+
+
+{% block javascript %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jscroll/2.4.1/jquery.jscroll.min.js"></script>
+<script>
+    jQuery(function ($) {
+        var $list = $('.book-list');
+        $list.jscroll({
+            loadingHtml: '<div class="text-center">' +
+                '<img src="{% static 'boards/img/loading.gif' %}" alt="Loading" />' +
+                '</div>',
+            padding: 100,
+            pagingSelector: '.pagination',
+            nextSelector: 'a.next-page:last',
+            contentSelector: '.card,.pagination'
+        });
+    });
+</script>
+{% endblock javascript %}
