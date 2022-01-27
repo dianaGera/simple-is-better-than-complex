@@ -5,7 +5,6 @@ from django.utils.safestring import mark_safe
 from django.utils.text import Truncator
 from markdown import markdown
 from simple_history.models import HistoricalRecords
-
 from django.db.models import signals
 from boards.signals import create_post
 
@@ -86,7 +85,7 @@ class Post(models.Model):
 
 class Photo(models.Model):
     title = models.CharField(max_length=255, blank=True)
-    file = models.FileField(upload_to='photos/', null=True)
+    file = models.ImageField(upload_to='photos/', null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE, null=True)
 

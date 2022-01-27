@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+
 <div class="d-flex p-2">
     <a href="{% url 'new_topic' board.pk %}" class="btn btn-primary">New topic</a>
 
@@ -19,7 +20,9 @@
         <button type="button"
                 class="btn btn-sm border-pink"><a class='export' href="{% url 'export_boards_xls' board.id %}">XLS</a></button>
         <button type="button"
-                class="btn btn-sm border-blue"><a class='export' href="{% url 'export_boards_pdf' board.id %}">PDF</a></button>
+                class="btn btn-sm border-blue"><a class='export'
+                                                  href="{% url 'export_boards_pdf' board.id %}" target='_blank'>PDF
+        </a></button>
     </div>
 </div>
 <div class="div-table">
@@ -36,15 +39,15 @@
     <div class="card mb-3">
         <div class="card-body d-flex div-table-row">
             <div class="div-table-col">
-                <h5 class="card-title"><a href="{{ topic_url }}">{{ topic.subject }}</a></h5>
+                <h5 class="card-title"><a href="{% url 'topic_posts' board.pk topic.pk %}">{{ topic.subject }}</a></h5>
                 <p class="card-text">
                     <small class="text-muted">
                         Pages:
                         {% for i in topic.get_page_range %}
-                        <a href="{{ topic_url }}?page={{ i }}">{{ i }}</a>
+                        <a href="{% url 'topic_posts' board.pk topic.pk %}?page={{ i }}">{{ i }}</a>
                         {% endfor %}
                         {% if topic.has_many_pages %}
-                        ... <a href="{{ topic_url }}?page={{ topic.get_page_count }}">Last Page</a>
+                        ... <a href="{% url 'topic_posts' board.pk topic.pk %}?page={{ topic.get_page_count }}">Last Page</a>
                         {% endif %}
                     </small>
                 </p>
@@ -74,9 +77,7 @@
     jQuery(function ($) {
         var $list = $('.book-list');
         $list.jscroll({
-            loadingHtml: '<div class="text-center">' +
-                '<img src="{% static 'boards/img/loading.gif' %}" alt="Loading" />' +
-                '</div>',
+            loadingHtml: '<div class="text-center"> Loading...</div>',
             padding: 100,
             pagingSelector: '.pagination',
             nextSelector: 'a.next-page:last',

@@ -1,0 +1,62 @@
+{% load static humanize %}
+
+<!--<link rel="stylesheet" href="{% static 'boards/css/bootstrap.min.css' %}">-->
+
+<style>
+.table {
+	width: 100%;
+	padding: 20px;
+	border: 1px solid #FADDE1;
+	border-collapse: collapse;
+}
+.table th {
+	font-weight: bold;
+	padding: 10px;
+	background: #FF7AA3;
+	border: 1px solid #FADDE1;
+}
+.table td {
+	border: 1px solid #FADDE1;
+	padding: 10px;
+}
+.int {
+    font-size: smaller;
+}
+.align-middle {
+    text-align: center;
+}
+</style>
+<link rel="stylesheet" href="{% static 'boards/css/app.css' %}">
+<table class="table table-striped mb-4">
+    <thead class="thead-inverse">
+    <tr>
+        <th>Topic</th>
+        <th>Starter</th>
+        <th>Replies</th>
+        <th>Views</th>
+        <th>Last Update</th>
+    </tr>
+    </thead>
+    <tbody>
+        {% for topic in topics %}
+        <tr>
+            <td>
+                <a href="{{ topic_url }}">{{ topic.subject }}</a>
+                <small class="text-muted">
+                    Pages:
+                    {% for i in topic.get_page_range %}
+                    <a href="{{ topic_url }}?page={{ i }}">{{ i }}</a>
+                    {% endfor %}
+                    {% if topic.has_many_pages %}
+                    ... <a href="{{ topic_url }}?page={{ topic.get_page_count }}">Last Page</a>
+                    {% endif %}
+                </small>
+            </td>
+            <td class="align-middle">{{ topic.starter.username }}</td>
+            <td class="align-middle int">{{ topic.replies }}</td>
+            <td class="align-middle int">{{ topic.views }}</td>
+            <td class="align-middle int">{{ topic.last_updated|naturaltime }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

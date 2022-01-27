@@ -11,7 +11,7 @@ class NewTopicForm(forms.Form):
         max_length=4000,
         help_text='Max length is 4000')
 
-    file = forms.FileField(
+    file = forms.ImageField(
         required=False,
         widget=forms.ClearableFileInput(
             attrs={

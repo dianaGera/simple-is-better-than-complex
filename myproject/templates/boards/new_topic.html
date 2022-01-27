@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load widget_tweaks %}
+{% load crispy_forms_tags %}
 
 {% block title %}Start a New Topic{% endblock %}
 
@@ -11,18 +11,16 @@
 {% endblock %}
 
 {% block content %}
-<form method="POST"  enctype="multipart/form-data">
+<form method="POST"  enctype="multipart/form-data" novalidate>
     {% csrf_token %}
     {% include 'includes/form.html' %}
-    <input id="fileupload" type="file" name="file" multiple>
     <button type="submit" class="btn btn-success mb-5" >Post</button>
 </form>
 {% endblock %}
 
 {% block javascript %}
-<script src="{% static 'boards/js/jquery-file-upload/vendor/jquery.ui.widget.js' %}"></script>
-<script src="{% static 'boards/js/jquery-file-upload/jquery.iframe-transport.js' %}"></script>
-<script src="{% static 'boards/js/jquery-file-upload/jquery.fileupload.js' %}"></script>
-
+<script src="{% static 'boards/js/jquery.ui.widget.js' %}"></script>
+<script src="{% static 'boards/js/jquery.iframe-transport.js' %}"></script>
+<script src="{% static 'boards/js/jquery.fileupload.js' %}"></script>
 <script src="{% static 'boards/js/basic-upload.js' %}"></script>
 {% endblock %}

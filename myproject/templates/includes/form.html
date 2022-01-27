@@ -3,10 +3,12 @@
 {% if form.non_field_errors %}
 <div class="alert alert-danger" role="alert">
     {% for error in form.non_field_errors %}
-    <p{% if forloop.last %} class="mb-0"{% endif %}>{{ error }}</p>
+    <p{% if forloop.last %} class="mb-0"{% endif %}>
+    {{ error }}</p>
     {% endfor %}
 </div>
 {% endif %}
+
 {% for field in form %}
 <div class="form-group">
     {{ field.label_tag }}
@@ -16,6 +18,7 @@
         {{ error }}
     </div>
     {% endfor %}
+
     {% if field.help_text %}
     <small class="form-text text-muted">
         {{ field.help_text|safe }}
@@ -23,5 +26,3 @@
     {% endif %}
 </div>
 {% endfor %}
-<!--<script src='https://www.google.com/recaptcha/api.js'></script>-->
-<!--<div class="g-recaptcha m-5" data-sitekey="6LcSN9AdAAAAAFgJ6irJwywjSnnSaZXp6weP4waY"></div>-->

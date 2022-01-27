@@ -10,7 +10,7 @@ urlpatterns = [
     path('boards/create/', views.create_boards, name='create_boards'),
     path('boards/<int:board_id>/update/', views.update_boards, name='update_boards'),
     path('boards/<int:board_id>/delete/', views.delete_boards, name='delete_boards'),
-    path('boards/<int:board_id>/new/', views.New_topicView.as_view(), name='new_topic'),
+    path('boards/<int:board_id>/new/', views.NewTopicView.as_view(), name='new_topic'),
     # path('boards/<int:board_id>/topics/<int:topic_id>/', views.topic_posts, name='topic_posts'),
     path('boards/<int:board_id>/topics/<int:topic_id>/',
          views.PostListView.as_view(),

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import os
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +21,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-4hm^h1xcngird71o03z#tq5ir+po4jqje4!o1r3^-e@1#v(v^$'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 
 ALLOWED_HOSTS = []
 
@@ -40,22 +45,27 @@ INSTALLED_APPS = [
 
     'django_celery_results',
 
-    # allauth
-    # Link: https://testdriven.io/blog/django-social-auth/
+    "debug_toolbar",
+
     "django.contrib.sites",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
-    # social providers
     "allauth.socialaccount.providers.github",
-    "allauth.socialaccount.providers.twitter",       #not done
+    "allauth.socialaccount.providers.twitter",
     'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.linkedin',      #not done
+    'allauth.socialaccount.providers.linkedin',
     'allauth.socialaccount.providers.linkedin_oauth2',
 
     'simple_history',
+
+    'easy_pdf',
+
+    'snowpenguin.django.recaptcha2',
     
     'django.contrib.humanize',
+
+    'django_countries',
 
     'django.contrib.flatpages',
 
@@ -66,6 +76,7 @@ INSTALLED_APPS = [
 
     'accounts',
     'boards',
+    'graphene-django',
 ]
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
@@ -105,6 +116,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'myproject.urls'
@@ -198,7 +210,7 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend'
+    'allauth.account.auth_backends.AuthenticationBackend',
 )
 
 SITE_ID = 1
@@ -214,15 +226,21 @@ LOGOUT_REDIRECT_URL = 'home'
 ACCOUNT_LOGOUT_REDIRECT_URL ='/accounts/login/'
 LOGIN_REDIRECT_URL = 'home'
 
-GOOGLE_RECAPTCHA_SECRET_KEY = '6LcSN9AdAAAAAFgJ6irJwywjSnnSaZXp6weP4waY'
-
+GOOGLE_RECAPTCHA_SECRET_KEY = config('GOOGLE_RECAPTCHA_SECRET_KEY')
+RECAPTCHA_PRIVATE_KEY = config('RECAPTCHA_PRIVATE_KEY')
+RECAPTCHA_PUBLIC_KEY = config('RECAPTCHA_PUBLIC_KEY')
 
 EMAIL_BACKEND ='django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'djangoproject64@gmail.com'
-EMAIL_HOST_PASSWORD = 'kzejvzjmfdwdqsob'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 CELERY_BROKER_URL = 'amqp://localhost'
 #run celery: celery -A myproject worker -l info
+#run celery flower: celery flower --port=5555
+
+GRAPHENE = {
+    'SCHEMA': 'api.schema.schema'
+}

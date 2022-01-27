@@ -1,8 +1,7 @@
 import csv
+import json
 import sys
-from datetime import time
 from io import BytesIO
-
 import xlwt
 from PIL.Image import Image
 from django.contrib import messages
@@ -21,14 +20,19 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import CreateView, UpdateView, ListView
+from html5lib import serialize
+
 from .templatetags.restriction import is_blogger
 from .forms import NewTopicForm, PostForm, CreateBoards
 from .models import Board, Topic, Post, Photo
-from weasyprint import HTML
+from myproject.tasks import *
+from myproject.export import *
 
 
 def home(request):
     boards = Board.objects.filter(is_active=True)
+    board = Board.objects.get(pk=3)
+    test = Topic.objects.filter(board=board.id)
     page = request.GET.get('page', 1)
     paginator = Paginator(boards, 10)
     page_obj = paginator.get_page(page)
@@ -38,8 +42,8 @@ def home(request):
         boards = paginator.page(1)
     except EmptyPage:
         boards = paginator.page(paginator.num_pages)
-
-    return render(request, 'boards/home.html', {'boards': boards, 'page_obj': page_obj, 'paginator': paginator})
+    return render(request, 'boards/home.html', {'boards': boards, 'page_obj': page_obj, 'paginator': paginator,
+                                                'test': test})
 
 
 # class BoardListView(ListView):
@@ -62,7 +66,7 @@ def blogger_home(request):
     try:
         page_obj = paginator.page(page_num)
     except PageNotAnInteger:
-        # Если страница не является целым числом,возвращаем первую страницу.
+        # Если страница не является целым числом, возвращаем первую страницу.
         page_obj = paginator.page(1)
     except EmptyPage:
         # Если номер страницы больше, чем общее количество страниц,
@@ -123,14 +127,12 @@ def save_boards(request, form, template_name):
             boards = Board.objects.all()
             data['boards_list'] = render_to_string('includes/boards_list.html',
                                                    {'boards': boards})
-            #!?!?!?!?
             if template_name == 'boards/update_boards.html':
                 messages.success(request, 'Board was updated successfully!')
             if template_name == 'boards/create_boards.html':
                 messages.success(request, 'Board was created successfully!')
         else:
             data['form_is_valid'] = False
-            messages.error(request, 'Something went wrong. Try again')
     context = {'form': form}
     data['html_form'] = render_to_string(template_name, context, request=request)
     return JsonResponse(data)
@@ -226,6 +228,7 @@ class TopicListView(ListView):
 #         file = PhotoForm()
 #     return render(request, 'boards/new_topic.html', {'board': board, 'form': form})
 
+
 def get_image(photo):
     img3 = Image.open(photo)
     new_img3 = img3.convert('RGB')
@@ -241,11 +244,11 @@ def get_image(photo):
 
 
 @method_decorator(login_required, name='dispatch')
-class New_topicView(View):
+class NewTopicView(View):
     def get(self, request, board_id):
         board = get_object_or_404(Board, pk=board_id)
-        form1 = NewTopicForm(request.POST, request.FILES)
-        return render(request, 'boards/new_topic.html', {'board': board, 'form': form1, 'photos': None})
+        form = NewTopicForm()
+        return render(request, 'boards/new_topic.html', {'board': board, 'form': form, 'photos': None})
 
     @transaction.atomic
     def post(self, request, board_id, images=[]):
@@ -277,47 +280,15 @@ class New_topicView(View):
                 data = {'is_valid': True, 'name': photo.title}
 
             if not files:
-                return redirect('board_topics', pk=board_id)
+                return redirect('board_topics', board_id=board.pk)
         else:
-            photo = request.FILES.get('file')
-            images.append(get_image(photo))
-            data = {'is_valid': True, 'name': photo.name}
-        return JsonResponse(data)
-
-
-@login_required
-def new_topic(request, board_id):
-    pass
-
-
-@login_required
-def new_topic(request, board_id):
-    topics = Topic.objects.all()
-    board = get_object_or_404(Board, pk=board_id)
-    if request.method == 'POST':
-        images = request.FILES.getlist('images')
-        print(images)
-        for image in images:
-            print(image)
-            photo = Photo.objects.create(
-            title='image',
-            file=image,
-            topic=topics.get(pk=1)
-        )
-        return redirect('home')
-    return render(request, 'boards/new_topic.html', {'topics': topics, 'board': board})
-
-    # topic =
-    # if topic == None:
-    #     photos = Photo.objects.all()
-    # else:
-    #     photos = Photo.objects.filter(topic__subject=topic)
-    #
-    # topics = Topic.objects.all()
-    # context = {'topics': topics, 'photos': photos, 'board': board}
-    # return render(request, 'boards/new_topic.html', context)
-
-
+            form = NewTopicForm(request.POST, request.FILES)
+            return render(request, 'boards/new_topic.html', {'board': board, 'form': form, 'photos': None})
+            # photo = request.FILES.get('file')
+            # images.append(get_image(photo))
+            # data = {'is_valid': True, 'name': photo.name}
+            # JsonResponse(data)
+        return redirect('board_topics', board_id=board.pk)
 
 
 # def topic_posts(request, board_id, topic_id):
@@ -339,8 +310,8 @@ class PostListView(ListView):
             self.topic.views += 1
             self.topic.save()
             self.request.session[session_key] = True
-
         kwargs['topic'] = self.topic
+        kwargs['images'] = Photo.objects.filter(topic=self.topic).all()
         return super().get_context_data(**kwargs)
 
     def get_queryset(self):
@@ -455,19 +426,14 @@ def export_boards_xls(request, board_id):
 
 def export_boards_pdf(request, board_id):
     board = Board.objects.get(pk=board_id)
-    topics = board.topics.all()
-    if len(topics) > 1:
-        html_string = render_to_string(
-            'includes/topics_list.html', {'topics': topics, 'board': board})
+    topics = board.topics.all().annotate(replies=Count('posts'))
+    context = {'board': board, 'topics': topics}
+    html_string = render_to_string('includes/topic_list_pdf.html', context)
+    url = request.build_absolute_uri()
+    html = HTML(string=html_string, base_url=url)
+    pdf_file = html.write_pdf()
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="{board.name}.pdf"'
+    return response
 
-        html = HTML(string=html_string)
-        html.write_pdf(target=f'/tmp/{board.name}.pdf')
 
-        fs = FileSystemStorage('/tmp')
-        with fs.open(f'{board.name}.pdf') as pdf:
-            response = HttpResponse(pdf, content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="{board.name}.pdf"'
-            return response
-    else:
-        messages.add_message(request, messages.ERROR, 'Failed')
-    return redirect('home')

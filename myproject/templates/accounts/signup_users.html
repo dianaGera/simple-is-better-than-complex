@@ -2,6 +2,7 @@
 {% block breadcrumb %}{% endblock %}
 {% block title %}Sign up to Django Boards{% endblock %}
 {% load form_tags widget_tweaks %}
+
 {% block content %}
 
 {% load crispy_forms_tags %}
@@ -10,12 +11,9 @@
         <div class="card">
             <div class="card-body">
                 <h3 class="card-title">Sign up as {{user_type}}: </h3>
-                <form method="post">
+                <form method="post" novalidate>
                     {% csrf_token %}
                     {{ form|crispy }}
-                        <script src='https://www.google.com/recaptcha/api.js'></script>
-                        <div class="g-recaptcha m-3" data-sitekey="6LcSN9AdAAAAAFgJ6irJwywjSnnSaZXp6weP4waY"></div>
-
                     <button type="submit" class="btn btn-primary btn-block">Create an account</button>
                 </form>
             </div>

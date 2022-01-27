@@ -1,14 +1,26 @@
 from PIL import Image
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.db import transaction
 from django.forms import SelectDateWidget
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator, MaxValueValidator
 from .models import Reader, Category, Interests, Blogger
 from datetime import datetime
-from django.core.validators import MinValueValidator, MaxValueValidator
+from snowpenguin.django.recaptcha2.fields import ReCaptchaField
+from snowpenguin.django.recaptcha2.widgets import ReCaptchaWidget
+from django_countries.widgets import CountrySelectWidget
+from django_countries.data import COUNTRIES
 
 User = get_user_model()
+
+
+class LoginForm(AuthenticationForm):
+    captcha = ReCaptchaField(widget=ReCaptchaWidget())
+
+    class Meta:
+        model = User
+        fields = ['username', 'password', 'captcha']
 
 
 class SignupBloggerForm(UserCreationForm):
@@ -17,20 +29,20 @@ class SignupBloggerForm(UserCreationForm):
         required=True,
         widget=forms.CheckboxSelectMultiple(attrs={'class': 'p-1'}))
     birthday = forms.DateField(widget=SelectDateWidget(
-            years=range(1960, datetime.now().year+1)),
+        years=range(1960, datetime.now().year+1)),
         initial=datetime.now())
-    country = forms.CharField(max_length=50, widget=forms.TextInput())
+    country = forms.ChoiceField(choices=COUNTRIES.items)
+    email = forms.EmailField()
+    captcha = ReCaptchaField(widget=ReCaptchaWidget())
 
     class Meta(UserCreationForm.Meta):
         model = User
-        widget = {
-            'category': forms.CheckboxSelectMultiple()
-        }
 
     @transaction.atomic
     def save(self):
         user = super().save(commit=False)
         user.is_blogger = True
+        user.email = self.cleaned_data.get('email')
         user.save()
         blogger = Blogger.objects.create(
             user=user,
@@ -38,6 +50,7 @@ class SignupBloggerForm(UserCreationForm):
             birthday=self.cleaned_data.get('birthday')
         )
         blogger.category.add(*self.cleaned_data.get('category'))
+        blogger.email = self.cleaned_data.get('email')
         return user
 
 
@@ -47,15 +60,21 @@ class SignupReaderForm(UserCreationForm):
         widget=forms.CheckboxSelectMultiple,
         required=True
     )
+    email = forms.EmailField()
     is_adult = forms.BooleanField(required=False, initial=False)
+    captcha = ReCaptchaField(widget=ReCaptchaWidget())
 
     class Meta(UserCreationForm.Meta):
         model = User
+        widget = {
+            'interests': forms.CheckboxSelectMultiple()
+        }
 
     @transaction.atomic
     def save(self):
         user = super().save(commit=False)
         user.is_reader = True
+        user.email = self.cleaned_data.get('email')
         user.save()
         reader = Reader.objects.create(user=user)
         reader.interests.add(*self.cleaned_data.get('interests'))
