@@ -1,0 +1,38 @@
+version: '3.7'
+services:
+  django:
+    container_name: simple
+    build: .
+    volumes:
+      - simple-db:/usr/src/app/
+    working_dir: /usr/src/app/
+    env_file:
+      - .env
+    environment:
+      - TZ=Europe/Moscow
+    command: bash -c "python manage.py migrate
+      && python manage.py runserver 127.0.0.1:8000"
+    ports:
+      - "8000:8000"
+
+  redis:
+    image: redis:alpine
+
+
+  celery:
+    build: .
+    command: celery -A myproject worker -l info -P eventlet
+    depends_on:
+      - redis
+      - django
+    environment:
+          - DEBUG=1
+          - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+          - CELERY_BROKER=redis://redis:6379/0
+          - CELERY_BACKEND=redis://redis:6379/0
+
+
+
+
+volumes:
+  simple-db:
