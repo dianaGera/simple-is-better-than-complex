@@ -11,7 +11,7 @@ services:
     environment:
       - TZ=Europe/Moscow
     command: bash -c "python manage.py migrate
-      && python manage.py runserver 127.0.0.1:8000"
+      && python manage.py runserver 8000"
     ports:
       - "8000:8000"
 
@@ -21,7 +21,7 @@ services:
 
   celery:
     build: .
-    command: celery -A myproject worker -l info -P eventlet
+    command: celery --app myproject worker -l info -P eventlet
     depends_on:
       - redis
       - django
@@ -30,9 +30,6 @@ services:
           - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
           - CELERY_BROKER=redis://redis:6379/0
           - CELERY_BACKEND=redis://redis:6379/0
-
-
-
 
 volumes:
   simple-db:

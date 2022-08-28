@@ -1,12 +1,9 @@
 import csv
 import string
 import xlwt
-from django.db.models import Count
 from django.http import HttpResponse
-from django.template.loader import render_to_string
 from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
-from weasyprint import HTML
 
 from accounts.forms import User
 from celery import shared_task
