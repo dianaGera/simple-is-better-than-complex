@@ -1,35 +1,30 @@
 version: '3.7'
 services:
-  django:
-    container_name: simple
+  simple-django-api:
+    container_name: simple-django-api
     build: .
     volumes:
-      - simple-db:/usr/src/app/
+      - simple-django-db:/usr/src/app/
     working_dir: /usr/src/app/
     env_file:
       - .env
     environment:
       - TZ=Europe/Moscow
+    depends_on:
+      - simple-django-rabbitmq
+      - simple-django-celery
     command: bash -c "python manage.py migrate
       && python manage.py runserver 8000"
     ports:
       - "8000:8000"
 
-  redis:
-    image: redis:alpine
+  simple-django-rabbitmq:
+    image: "rabbitmq:3"
 
-
-  celery:
+  simple-django-celery:
     build: .
-    command: celery --app myproject worker -l info -P eventlet
+    command: celery -A myproject worker -l INFO
     depends_on:
-      - redis
-      - django
-    environment:
-          - DEBUG=1
-          - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
-          - CELERY_BROKER=redis://redis:6379/0
-          - CELERY_BACKEND=redis://redis:6379/0
-
+      - simple-django-rabbitmq
 volumes:
-  simple-db:
+  simple-django-db:
