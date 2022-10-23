@@ -4,7 +4,7 @@ This project was created following by [Simple is better than complex](https://si
 
 +additional tutorials from this resource
 
-I learnt: 
+
 * Django (basic), Django Unit Test, Celery, Shell, Docker, JavaScript, 
 * Crop Images, adding multiple users, upload multiple files, 
 * Reset password, SendEmail, crispyForm, allauth

@@ -1,13 +1,21 @@
-FROM python:3.8.10
-ENV PYTHONUNBUFFERED=1
+# pull official base image
+FROM python:3.9.6-alpine
 
-RUN mkdir -p /usr/src/app/
-WORKDIR . /usr/src/app/
+# set work directory
+WORKDIR /usr/src/app
 
-COPY req.txt /usr/src/app/
-RUN pip install --no-cache -r /usr/src/app/req.txt
-COPY . /usr/src/app/
+# set environment variables
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
-EXPOSE 8000
+# install psycopg2 dependencies
+RUN apk update \
+    && apk add postgresql-dev gcc python3-dev musl-dev
 
-CMD ["python", "manage.py", "runserver", "127.0.0.1:8000"]
+# install dependencies
+RUN pip install --upgrade pip
+COPY ./requirements.txt .
+RUN pip install -r requirements.txt
+
+# copy project
+COPY . .
